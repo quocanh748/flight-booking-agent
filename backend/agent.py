@@ -73,7 +73,7 @@ class ConsecutiveToolLimitMiddleware(AgentMiddleware):
         if self.consecutive_count >= self.max_consecutive:
             return ToolMessage(
                 content=(
-                    f"🛑 [CIRCUIT BREAKER]: Công cụ '{tool_name}' đã bị gọi lặp lại "
+                    f"[CIRCUIT BREAKER]: Công cụ '{tool_name}' đã bị gọi lặp lại "
                     f"{self.max_consecutive} lần liên tiếp! Middleware đã ngắt vòng lặp an toàn."
                 ),
                 tool_call_id=request.tool_call["id"],

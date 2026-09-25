@@ -26,9 +26,9 @@ def main():
     current_balance = get_wallet_balance()
     formatted_balance = f"{current_balance:,} VND".replace(",", ".")
 
-    print("🛫 TRỢ LÝ TRA CỨU & ĐẶT VÉ MÁY BAY THÔNG MINH")
-    print(f"💰 Số dư ví ban đầu: {formatted_balance}")
-    print("👉 Nhập 'exit', 'quit' hoặc 'q' để kết thúc.")
+    print("TRỢ LÝ TRA CỨU & ĐẶT VÉ MÁY BAY THÔNG MINH")
+    print(f"Số dư ví ban đầu: {formatted_balance}")
+    print("Nhập 'exit', 'quit' hoặc 'q' để kết thúc.")
     print("=" * 70)
 
     session_id = "main_interactive_session"
