@@ -50,7 +50,7 @@ def main():
                 print(f"\n[THÔNG BÁO HỆ THỐNG]: Đã hoàn tất xuất vé! Mã PNR: {result.pnr}")
                 print(f"Số dư ví còn lại: {result.wallet_balance_end:,} VND".replace(",", "."))
             elif result.status == HarnessStatus.TOOL_LIMIT_TRIGGERED:
-                print("\n[CẢNH BÁO HỆ THỐNG]: Middleware đã kích hoạt ngắt an toàn (Circuit Breaker) do phát hiện lặp tool.")
+                print("\n[CẢNH BÁO HỆ THỐNG]:phát hiện lặp tool.")
 
         except KeyboardInterrupt:
             print("\n\nĐã dừng chương trình. Tạm biệt!")

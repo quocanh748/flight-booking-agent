@@ -128,16 +128,3 @@ class TicketAgent:
         config = config or {"configurable": {"thread_id": "ticket_chat_session"}}
         return self.agent.invoke(input_data, config=config)
 
-    def chat(self, message: str, thread_id: str = "ticket_chat_session") -> str:
-        """Gửi tin nhắn và nhận câu trả lời dạng văn bản từ trợ lý AI."""
-        config = {"configurable": {"thread_id": thread_id}}
-        response = self.invoke(
-            {"messages": [HumanMessage(content=message)]},
-            config=config,
-        )
-
-        messages = response.get("messages", [])
-        for msg in reversed(messages):
-            if isinstance(msg, AIMessage) and msg.content:
-                return msg.content
-        return "Xin lỗi, tôi chưa thể trả lời câu hỏi này."

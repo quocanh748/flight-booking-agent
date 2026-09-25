@@ -120,8 +120,3 @@ class AgentHarness:
             wallet_balance_start=balance_start,
             wallet_balance_end=get_wallet_balance(),
         )
-
-    def chat(self, message: str, thread_id: str = "ticket_chat_session") -> str:
-        """Hàm rút gọn cho phép chat trực tiếp và nhận phản hồi văn bản."""
-        result = self.step(user_input=message, thread_id=thread_id)
-        return result.final_response
