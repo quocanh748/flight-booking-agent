@@ -130,19 +130,57 @@ AIRPORT_NAMES = {
     "SGN": "TP. Hồ Chí Minh (SGN)"
 }
 
-def parse_time_period(period_str: str | None) -> tuple[str, str, str]:
+def parse_specific_time(time_str: str | None) -> tuple[str | None, int | None]:
+    if not time_str:
+        return None, None
+    text = time_str.lower().strip()
+    
+    # 1. Định dạng HH:MM (ví dụ: 02:00, 14:30)
+    m = re.search(r'(\d{1,2}):(\d{2})', text)
+    if m:
+        h, mnt = int(m.group(1)), int(m.group(2))
+        return f"{h:02d}:{mnt:02d}", h * 60 + mnt
+        
+    # 2. Định dạng X giờ/h sáng/trưa/chiều/tối/đêm (ví dụ: 2 giờ sáng, 2h sáng, 8h tối)
+    m = re.search(r'(\d{1,2})\s*(?:giờ|gio|h|g)(?:\s*(\d{1,2}))?\s*(sáng|sang|trưa|trua|chiều|chieu|tối|toi|đêm|dem)?', text)
+    if m:
+        h = int(m.group(1))
+        mnt = int(m.group(2)) if m.group(2) else 0
+        period = m.group(3)
+        if period:
+            if any(k in period for k in ['tối', 'toi', 'đêm', 'dem']) and h < 12:
+                h += 12
+            elif any(k in period for k in ['chiều', 'chieu']) and h < 12:
+                h += 12
+            elif any(k in period for k in ['sáng', 'sang']) and h == 12:
+                h = 0
+        return f"{h:02d}:{mnt:02d}", h * 60 + mnt
+        
+    return None, None
+
+def parse_time_period(period_str: str | None) -> tuple[str, str, str, str | None, int | None]:
     if not period_str:
-        return ("00:00", "23:59", "Cả ngày (00:00 - 23:59)")
+        return ("00:00", "23:59", "Cả ngày (00:00 - 23:59)", None, None)
+    
+    # Ưu tiên kiểm tra xem người dùng có nói giờ cụ thể (VD: 2 giờ sáng, 14h, 8h tối) không
+    exact_time, exact_minutes = parse_specific_time(period_str)
+    if exact_time:
+        start_m = max(0, exact_minutes - 90)
+        end_m = min(24 * 60 - 1, exact_minutes + 90)
+        start_s = f"{start_m // 60:02d}:{start_m % 60:02d}"
+        end_s = f"{end_m // 60:02d}:{end_m % 60:02d}"
+        return (start_s, end_s, f"Khoảng {exact_time} ({start_s} - {end_s})", exact_time, exact_minutes)
+
     p = period_str.strip().lower()
     if any(k in p for k in ["sáng", "sang", "morning", "sớm"]):
-        return ("05:00", "11:00", "Buổi sáng (05:00 - 11:00)")
+        return ("05:00", "11:00", "Buổi sáng (05:00 - 11:00)", None, None)
     elif any(k in p for k in ["trưa", "trua", "noon"]):
-        return ("11:00", "13:30", "Buổi trưa (11:00 - 13:30)")
+        return ("11:00", "13:30", "Buổi trưa (11:00 - 13:30)", None, None)
     elif any(k in p for k in ["chiều", "chieu", "afternoon"]):
-        return ("13:30", "18:00", "Buổi chiều (13:30 - 18:00)")
+        return ("13:30", "18:00", "Buổi chiều (13:30 - 18:00)", None, None)
     elif any(k in p for k in ["tối", "toi", "đêm", "dem", "night", "evening"]):
-        return ("18:00", "23:59", "Buổi tối (18:00 - 23:59)")
-    return ("00:00", "23:59", period_str)
+        return ("18:00", "23:59", "Buổi tối (18:00 - 23:59)", None, None)
+    return ("00:00", "23:59", period_str, None, None)
 
 def normalize_airport_code(location_str: str | None) -> str | None:
     if not location_str:
@@ -162,7 +200,7 @@ class SmartSearchInput(BaseModel):
     day: str = Field(description="Thứ trong tuần cần tìm vé (VD: 'Thứ 4', 'Wednesday', 'Thứ 2', 'Monday'...)")
     time_period: str | None = Field(
         default=None,
-        description="Khung giờ bay: 'sáng', 'trưa', 'chiều', 'tối', hoặc None nếu không yêu cầu giờ"
+        description="Khung giờ bay: '2 giờ sáng', 'sáng', 'trưa', 'chiều', 'tối', hoặc giờ cụ thể"
     )
     destination: str | None = Field(
         default=None,
@@ -182,7 +220,7 @@ def smart_flight_search(
     departure: str | None = None,
     seat_class: str = "ECONOMY"
 ) -> dict:
-    """Tự động kiểm tra lịch bay, lọc khung giờ (sáng/trưa/chiều/tối), kiểm tra ghế trống và số dư ví để đề xuất 1 vé máy bay hoàn chỉnh cho khách hàng xác nhận."""
+    """Tự động kiểm tra lịch bay, lọc khung giờ (sáng/trưa/chiều/tối/giờ cụ thể), kiểm tra ghế trống và số dư ví. Phát hiện và cảnh báo nếu giờ bay bị lệch so với giờ khách yêu cầu."""
     try:
         data = load_schedule_data()
         day_raw = day.strip().lower()
@@ -200,7 +238,7 @@ def smart_flight_search(
             return {"status": "not_found", "message": f"Không tìm thấy lịch bay cho ngày {day}."}
 
         flights = day_entry.get("flights", [])
-        start_time, end_time, time_label = parse_time_period(time_period)
+        start_time, end_time, time_label, exact_time, exact_minutes = parse_time_period(time_period)
         dest_code = normalize_airport_code(destination)
         dep_code = normalize_airport_code(departure)
         target_class = CLASS_MAPPING.get(seat_class.strip().lower(), seat_class.strip().upper())
@@ -212,6 +250,13 @@ def smart_flight_search(
             f_from = route.get("from", "")
             f_to = route.get("to", "")
             dep_time = flight.get("dep_time", "00:00")
+
+            # Tính phút cất cánh
+            try:
+                dh, dm = map(int, dep_time.split(":"))
+                dep_mins = dh * 60 + dm
+            except Exception:
+                dep_mins = 0
 
             # Tìm hạng vé
             chosen_class = None
@@ -228,7 +273,14 @@ def smart_flight_search(
             # Tính điểm độ khớp (Scoring)
             score = 0
             is_time_match = (start_time <= dep_time <= end_time)
-            if is_time_match:
+            time_diff_mins = None
+
+            if exact_minutes is not None:
+                time_diff_mins = abs(dep_mins - exact_minutes)
+                # Điểm thời gian dựa trên khoảng cách phút (càng gần giờ khách yêu cầu điểm càng cao)
+                time_score = max(0, 150 - (time_diff_mins // 2))
+                score += time_score
+            elif is_time_match:
                 score += 100
             
             is_dest_match = True
@@ -258,6 +310,8 @@ def smart_flight_search(
                 "score": score,
                 "price": price,
                 "seats_left": seats_left,
+                "dep_mins": dep_mins,
+                "time_diff_mins": time_diff_mins,
                 "is_time_match": is_time_match,
                 "is_dest_match": is_dest_match,
                 "is_dep_match": is_dep_match,
@@ -265,7 +319,7 @@ def smart_flight_search(
                 "can_afford": can_afford,
             })
 
-        # Ưu tiên chuyến bay có điểm cao nhất
+        # Sắp xếp theo score giảm dần
         candidates.sort(key=lambda x: (-x["score"], x["price"]))
 
         if not candidates:
@@ -279,17 +333,48 @@ def smart_flight_search(
         from_str = AIRPORT_NAMES.get(f_info['route']['from'], f_info['route']['from'])
         to_str = AIRPORT_NAMES.get(f_info['route']['to'], f_info['route']['to'])
 
+        # Kiểm tra xem có bị lệch giờ nghiêm trọng không
+        has_time_deviation = False
+        time_diff_hours = 0.0
+        if exact_time and best["time_diff_mins"] is not None:
+            time_diff_hours = round(best["time_diff_mins"] / 60, 1)
+            if best["time_diff_mins"] > 90:  # Lệch quá 1.5 tiếng
+                has_time_deviation = True
+
+        if has_time_deviation:
+            time_check_msg = (
+                f"⚠️ LỆCH GIỜ BAY: Khách yêu cầu lúc {exact_time}, nhưng ngày {day_entry.get('day_vn')} "
+                f"không có chuyến giờ này! Chuyến sớm nhất/gần nhất hiện có là lúc {f_info['dep_time']} "
+                f"(chênh lệch {time_diff_hours} tiếng so với giờ khách muốn)."
+            )
+            status = "needs_time_clarification"
+            instruction = (
+                f"BẮT BUỘC HỎI Ý KIẾN KHÁCH HÀNG: Thông báo rõ ràng rằng ngày {day_entry.get('day_vn')} "
+                f"không có chuyến bay lúc {exact_time}. Chuyến bay sớm nhất hiện có là lúc {f_info['dep_time']} "
+                f"({f_info['flight_id']} của {f_info['airline']}, cất cánh muộn hơn {time_diff_hours} tiếng). "
+                f"Hỏi khách: 'Quý khách có đồng ý đổi sang bay lúc {f_info['dep_time']} này không?' "
+                f"TUYỆT ĐỐI KHÔNG xuất phiếu chốt vé như thể đã khớp giờ!"
+            )
+        else:
+            time_check_msg = f"✅ Khung giờ: {time_label} (Chuyến cất cánh lúc {f_info['dep_time']})"
+            status = "success"
+            instruction = "HÃY XUẤT PHIẾU ĐỀ XUẤT VÉ NÀY KÈM CÁC ĐIỀU KIỆN ĐÃ CHECK ĐỂ KHÁCH HÀNG XÁC NHẬN. TUYỆT ĐỐI CHƯA GỌI book_flight TRỪ TIỀN KHI CHƯA ĐƯỢC KHÁCH XÁC NHẬN!"
+
         conditions_summary = {
             "schedule_check": f"✅ Lịch bay: Có chuyến bay vào {day_entry.get('day_vn')} ({day_entry.get('day_of_week')})",
-            "time_check": f"✅ Khung giờ: {time_label} (Chuyến cất cánh lúc {f_info['dep_time']})",
+            "time_check": time_check_msg,
             "route_check": f"✅ Tuyến bay: {from_str} -> {to_str}",
             "seats_check": f"✅ Ghế trống: Hạng {target_class} còn {best['seats_left']} ghế",
             "wallet_check": f"✅ Số dư ví: {wallet_balance:,} VND >= Giá vé {best['price']:,} VND (ĐỦ ĐIỀU KIỆN)".replace(",", "."),
         }
 
         return {
-            "status": "success",
-            "message": "Đã tự động kiểm tra lịch, giờ, ghế trống và số dư ví. Đã chọn chuyến bay tối ưu nhất.",
+            "status": status,
+            "has_time_deviation": has_time_deviation,
+            "requested_time": exact_time,
+            "closest_departure_time": f_info.get("dep_time"),
+            "time_difference_hours": time_diff_hours,
+            "message": "Đã kiểm tra lịch trình, ghế trống và số dư ví.",
             "conditions_verified": conditions_summary,
             "draft_ticket": {
                 "flight_id": f_info.get("flight_id"),
@@ -307,7 +392,7 @@ def smart_flight_search(
                 "current_wallet_balance": f"{wallet_balance:,} VND".replace(",", "."),
                 "remaining_balance_after": f"{(wallet_balance - best['price']):,} VND".replace(",", "."),
             },
-            "instruction_for_agent": "HÃY XUẤT PHIẾU ĐỀ XUẤT VÉ NÀY KÈM CÁC ĐIỀU KIỆN ĐÃ CHECK ĐỂ KHÁCH HÀNG XÁC NHẬN. TUYỆT ĐỐI CHƯA GỌI book_flight TRỪ TIỀN KHI CHƯA ĐƯỢC KHÁCH XÁC NHẬN!"
+            "instruction_for_agent": instruction,
         }
 
     except Exception as e:
