@@ -8,13 +8,8 @@ from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 from langchain_ollama import ChatOllama
 from langgraph.checkpoint.memory import MemorySaver
 
-# Sử dụng create_agent và Middleware native từ thư viện LangChain
+# Khởi tạo Agent từ thư viện LangChain
 from langchain.agents import create_agent
-from langchain.agents.middleware import (
-    AgentMiddleware,
-    ToolCallLimitMiddleware,
-    ModelCallLimitMiddleware,
-)
 
 from tools import (
     check_ticket_schedule,
@@ -53,37 +48,8 @@ Trước khi thực hiện hoặc đưa ra câu trả lời, bạn luôn tư duy
 """
 
 
-class ConsecutiveToolLimitMiddleware(AgentMiddleware):
-    """Middleware ngắt khẩn cấp nếu cùng 1 tool bị gọi lặp lại liên tiếp quá số lần cho phép."""
-
-    def __init__(self, max_consecutive: int = 5):
-        super().__init__()
-        self.max_consecutive = max_consecutive
-        self.last_tool = None
-        self.consecutive_count = 0
-
-    def wrap_tool_call(self, request, handler):
-        tool_name = request.tool.name if hasattr(request, "tool") and request.tool else "unknown"
-        if tool_name == self.last_tool:
-            self.consecutive_count += 1
-        else:
-            self.consecutive_count = 1
-            self.last_tool = tool_name
-
-        if self.consecutive_count >= self.max_consecutive:
-            return ToolMessage(
-                content=(
-                    f"[CIRCUIT BREAKER]: Công cụ '{tool_name}' đã bị gọi lặp lại "
-                    f"{self.max_consecutive} lần liên tiếp! Middleware đã ngắt vòng lặp an toàn."
-                ),
-                tool_call_id=request.tool_call["id"],
-                status="error",
-            )
-        return handler(request)
-
-
 class TicketAgent:
-    """Agent cốt lõi quản lý mô hình, prompt, tools và middlewares bảo vệ."""
+    """Agent cốt lõi quản lý mô hình, prompt và tools."""
 
     def __init__(
         self,
@@ -107,19 +73,12 @@ class TicketAgent:
         ]
         self.memory = MemorySaver()
 
-        self.middlewares = [
-            ConsecutiveToolLimitMiddleware(max_consecutive=5),
-            ToolCallLimitMiddleware(run_limit=5, exit_behavior="end"),
-            ModelCallLimitMiddleware(run_limit=5, exit_behavior="end"),
-        ]
-
-        # Khởi tạo Agent sử dụng create_agent và Middleware native
+        # Khởi tạo Agent sử dụng create_agent
         self.agent = create_agent(
             model=self.model,
             tools=self.tools,
             system_prompt=SYSTEM_PROMPT,
             checkpointer=self.memory,
-            middleware=self.middlewares,
         )
 
     def invoke(self, input_data: dict, config: dict | None = None) -> dict:
