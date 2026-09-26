@@ -107,7 +107,6 @@ class TicketAgent:
         ]
         self.memory = MemorySaver()
 
-        # Cấu hình danh sách Middleware chuẩn từ thư viện
         self.middlewares = [
             ConsecutiveToolLimitMiddleware(max_consecutive=5),
             ToolCallLimitMiddleware(run_limit=5, exit_behavior="end"),
@@ -127,4 +126,3 @@ class TicketAgent:
         """Gọi trực tiếp agent graph của LangGraph."""
         config = config or {"configurable": {"thread_id": "ticket_chat_session"}}
         return self.agent.invoke(input_data, config=config)
-
