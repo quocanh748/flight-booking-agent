@@ -8,12 +8,11 @@ from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 from langchain_ollama import ChatOllama
 from langgraph.checkpoint.memory import MemorySaver
 
-# Khởi tạo Agent từ thư viện LangChain
 from langchain.agents import create_agent
 
 from tools import (
-    check_ticket_schedule,
     check_balance,
+    add_balance,
     book_flight,
     smart_flight_search,
 )
@@ -27,9 +26,9 @@ Trước khi thực hiện hoặc đưa ra câu trả lời, bạn luôn tư duy
    - Xác định rõ hành động (Action) cần gọi công cụ nào.
 
 2. Hành động (Acting / Action):
-   - Khi khách đưa yêu cầu tìm vé: Gọi ngay `smart_flight_search(day=..., time_period=..., destination=...)` để hệ thống tự động kiểm tra toàn bộ (lịch bay, giờ bay, độ lệch giờ, ghế trống và số dư ví tài khoản).
+   - Khi khách đưa yêu cầu tìm vé hoặc xem lịch bay: Gọi ngay `smart_flight_search(day=..., time_period=..., destination=...)` để hệ thống tự động kiểm tra toàn bộ (lịch bay, danh sách chuyến, giờ bay, độ lệch giờ, ghế trống và số dư ví tài khoản).
    - Nếu khách hỏi số dư ví: Gọi `check_balance()`.
-   - Nếu khách muốn xem bảng chuyến bay: Gọi `check_ticket_schedule(day=...)`.
+   - Nếu khách yêu cầu nạp tiền thì: Gọi 'add_balance(tien: int)' để hệ thống cộng số tiền khách nhập vào wallet
    - Nếu khách đã XÁC NHẬN ('đồng ý', 'xác nhận', 'đặt luôn') kèm họ tên: Gọi `book_flight(flight_id=..., passengers=[...])` để hoàn tất thanh toán.
 
 3. Quan sát & Đánh giá (Observation & Verification):
@@ -49,7 +48,6 @@ Trước khi thực hiện hoặc đưa ra câu trả lời, bạn luôn tư duy
 
 
 class TicketAgent:
-    """Agent cốt lõi quản lý mô hình, prompt và tools."""
 
     def __init__(
         self,
@@ -66,14 +64,13 @@ class TicketAgent:
             base_url=base_url,
         )
         self.tools = [
-            check_ticket_schedule,
             check_balance,
+            add_balance,
             book_flight,
             smart_flight_search,
         ]
         self.memory = MemorySaver()
 
-        # Khởi tạo Agent sử dụng create_agent
         self.agent = create_agent(
             model=self.model,
             tools=self.tools,
@@ -82,6 +79,9 @@ class TicketAgent:
         )
 
     def invoke(self, input_data: dict, config: dict | None = None) -> dict:
-        """Gọi trực tiếp agent graph của LangGraph."""
         config = config or {"configurable": {"thread_id": "ticket_chat_session"}}
         return self.agent.invoke(input_data, config=config)
+
+    def stream(self, input_data: dict, config: dict | None = None, stream_mode: str = "updates"):
+        config = config or {"configurable": {"thread_id": "ticket_chat_session"}}
+        return self.agent.stream(input_data, config=config, stream_mode=stream_mode)

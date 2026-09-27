@@ -1,11 +1,15 @@
 import os
 import sys
+import re
+import json
 from dotenv import load_dotenv
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-from harness import AgentHarness, HarnessStatus
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+from langgraph.errors import GraphRecursionError
+
 from agent import TicketAgent
 from tools import get_wallet_balance
 
@@ -21,13 +25,12 @@ def main():
         base_url=base_url,
     )
 
-    harness = AgentHarness(max_turns=5, agent=agent)
-
     current_balance = get_wallet_balance()
     formatted_balance = f"{current_balance:,} VND".replace(",", ".")
 
     print("TRỢ LÝ TRA CỨU & ĐẶT VÉ MÁY BAY THÔNG MINH")
     print(f"Số dư ví ban đầu: {formatted_balance}")
+    print("Nhập 'exit', 'quit' hoặc 'q' để kết thúc.")
 
     session_id = "main_interactive_session"
 
@@ -41,15 +44,47 @@ def main():
                 print("\nTrợ lý: Cảm ơn bạn đã sử dụng dịch vụ. Chúc bạn một ngày tốt lành!")
                 break
 
-            result = harness.step(user_input=user_input, thread_id=session_id)
-            print(f"\nTrợ lý:\n{result.final_response}")
+            config = {
+                "configurable": {"thread_id": session_id},
+                "recursion_limit": 10,
+            }
 
-            if result.status == HarnessStatus.COMPLETED and result.pnr:
-                print(f"\n[THÔNG BÁO HỆ THỐNG]: Đã hoàn tất xuất vé! Mã PNR: {result.pnr}")
-                print(f"Số dư ví còn lại: {result.wallet_balance_end:,} VND".replace(",", "."))
-            elif result.status == HarnessStatus.TOOL_LIMIT_TRIGGERED:
-                print("\n[CẢNH BÁO HỆ THỐNG]:phát hiện lặp tool.")
+            print("\n[TIẾN TRÌNH ReAct (REASONING & ACTING)]:")
+            final_response = ""
 
+            for update in agent.stream(
+                {"messages": [HumanMessage(content=user_input)]},
+                config=config,
+                stream_mode="updates",
+            ):
+                for node_name, node_data in update.items():
+                    messages = node_data.get("messages", [])
+                    for msg in messages:
+                        if isinstance(msg, AIMessage):
+                            if msg.content and getattr(msg, "tool_calls", None):
+                                print(f"   [REASONING]: {msg.content}")
+                            if getattr(msg, "tool_calls", None):
+                                for tc in msg.tool_calls:
+                                    t_name = tc.get("name", "unknown_tool")
+                                    t_args = json.dumps(tc.get("args", {}), sort_keys=True, ensure_ascii=False)
+                                    print(f"   [ACTION]: {t_name}({t_args})")
+                            elif msg.content:
+                                final_response = msg.content
+                        elif isinstance(msg, ToolMessage):
+                            content_str = str(msg.content)
+                            obs_preview = content_str[:160] + "..." if len(content_str) > 160 else content_str
+                            print(f"   [OBSERVATION]: {msg.name} -> {obs_preview}")
+
+            print(f"\nTrợ lý:\n{final_response}")
+
+            pnr_match = re.search(r"\bPNR\d{6}\b", final_response)
+            if pnr_match:
+                balance_now = get_wallet_balance()
+                print(f"\n[THÔNG BÁO HỆ THỐNG]: Đã hoàn tất xuất vé! Mã PNR: {pnr_match.group(0)}")
+                print(f"Số dư ví còn lại: {balance_now:,} VND".replace(",", "."))
+
+        except GraphRecursionError:
+            print("\n[CẢNH BÁO HỆ THỐNG]: Đã vượt quá giới hạn bước suy luận (Recursion Limit).")
         except KeyboardInterrupt:
             print("\n\nĐã dừng chương trình. Tạm biệt!")
             break
