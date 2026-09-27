@@ -1,0 +1,650 @@
+[
+  {
+    "day_of_week": "Monday",
+    "day_vn": "Thứ 2",
+    "flights": [
+      {
+        "flight_id": "VN102",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "SGN",
+          "to": "HAN"
+        },
+        "dep_time": "06:00",
+        "arr_time": "08:15",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1850000,
+            "seats_left": 12
+          },
+          {
+            "type": "BUSINESS",
+            "price": 4600000,
+            "seats_left": 4
+          }
+        ]
+      },
+      {
+        "flight_id": "VJ154",
+        "airline": "Vietjet Air",
+        "route": {
+          "from": "SGN",
+          "to": "HAN"
+        },
+        "dep_time": "11:30",
+        "arr_time": "13:45",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1200000,
+            "seats_left": 8
+          },
+          {
+            "type": "SKYBOSS",
+            "price": 3200000,
+            "seats_left": 2
+          }
+        ]
+      },
+      {
+        "flight_id": "QH202",
+        "airline": "Bamboo Airways",
+        "route": {
+          "from": "SGN",
+          "to": "DAD"
+        },
+        "dep_time": "14:15",
+        "arr_time": "15:35",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1100000,
+            "seats_left": 15
+          },
+          {
+            "type": "BUSINESS",
+            "price": 2700000,
+            "seats_left": 5
+          }
+        ]
+      },
+      {
+        "flight_id": "VN250",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "HAN",
+          "to": "SGN"
+        },
+        "dep_time": "19:00",
+        "arr_time": "21:15",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1950000,
+            "seats_left": 3
+          },
+          {
+            "type": "BUSINESS",
+            "price": 4800000,
+            "seats_left": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "day_of_week": "Tuesday",
+    "day_vn": "Thứ 3",
+    "flights": [
+      {
+        "flight_id": "VJ120",
+        "airline": "Vietjet Air",
+        "route": {
+          "from": "SGN",
+          "to": "HAN"
+        },
+        "dep_time": "07:15",
+        "arr_time": "09:30",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1050000,
+            "seats_left": 20
+          },
+          {
+            "type": "SKYBOSS",
+            "price": 2900000,
+            "seats_left": 3
+          }
+        ]
+      },
+      {
+        "flight_id": "VN114",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "SGN",
+          "to": "DAD"
+        },
+        "dep_time": "10:00",
+        "arr_time": "11:20",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1450000,
+            "seats_left": 10
+          },
+          {
+            "type": "BUSINESS",
+            "price": 3100000,
+            "seats_left": 6
+          }
+        ]
+      },
+      {
+        "flight_id": "QH156",
+        "airline": "Bamboo Airways",
+        "route": {
+          "from": "HAN",
+          "to": "SGN"
+        },
+        "dep_time": "15:45",
+        "arr_time": "18:00",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1350000,
+            "seats_left": 6
+          },
+          {
+            "type": "BUSINESS",
+            "price": 3600000,
+            "seats_left": 3
+          }
+        ]
+      },
+      {
+        "flight_id": "VN280",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "DAD",
+          "to": "SGN"
+        },
+        "dep_time": "20:30",
+        "arr_time": "21:50",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1250000,
+            "seats_left": 0
+          },
+          {
+            "type": "BUSINESS",
+            "price": 2900000,
+            "seats_left": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "day_of_week": "Wednesday",
+    "day_vn": "Thứ 4",
+    "flights": [
+      {
+        "flight_id": "QH101",
+        "airline": "Bamboo Airways",
+        "route": {
+          "from": "SGN",
+          "to": "HAN"
+        },
+        "dep_time": "06:30",
+        "arr_time": "08:45",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1400000,
+            "seats_left": 14
+          },
+          {
+            "type": "BUSINESS",
+            "price": 3900000,
+            "seats_left": 5
+          }
+        ]
+      },
+      {
+        "flight_id": "VJ632",
+        "airline": "Vietjet Air",
+        "route": {
+          "from": "SGN",
+          "to": "DAD"
+        },
+        "dep_time": "12:10",
+        "arr_time": "13:30",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 950000,
+            "seats_left": 18
+          }
+        ]
+      },
+      {
+        "flight_id": "VN160",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "HAN",
+          "to": "SGN"
+        },
+        "dep_time": "16:20",
+        "arr_time": "18:35",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1750000,
+            "seats_left": 5
+          },
+          {
+            "type": "BUSINESS",
+            "price": 4500000,
+            "seats_left": 3
+          }
+        ]
+      },
+      {
+        "flight_id": "VJ192",
+        "airline": "Vietjet Air",
+        "route": {
+          "from": "DAD",
+          "to": "HAN"
+        },
+        "dep_time": "21:00",
+        "arr_time": "22:20",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 890000,
+            "seats_left": 9
+          },
+          {
+            "type": "SKYBOSS",
+            "price": 2600000,
+            "seats_left": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "day_of_week": "Thursday",
+    "day_vn": "Thứ 5",
+    "flights": [
+      {
+        "flight_id": "VN118",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "SGN",
+          "to": "HAN"
+        },
+        "dep_time": "08:00",
+        "arr_time": "10:15",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1850000,
+            "seats_left": 16
+          },
+          {
+            "type": "BUSINESS",
+            "price": 4600000,
+            "seats_left": 6
+          }
+        ]
+      },
+      {
+        "flight_id": "QH224",
+        "airline": "Bamboo Airways",
+        "route": {
+          "from": "SGN",
+          "to": "DAD"
+        },
+        "dep_time": "13:00",
+        "arr_time": "14:20",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1150000,
+            "seats_left": 11
+          },
+          {
+            "type": "BUSINESS",
+            "price": 2800000,
+            "seats_left": 4
+          }
+        ]
+      },
+      {
+        "flight_id": "VJ178",
+        "airline": "Vietjet Air",
+        "route": {
+          "from": "HAN",
+          "to": "SGN"
+        },
+        "dep_time": "17:30",
+        "arr_time": "19:45",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1100000,
+            "seats_left": 4
+          },
+          {
+            "type": "SKYBOSS",
+            "price": 3100000,
+            "seats_left": 3
+          }
+        ]
+      },
+      {
+        "flight_id": "VN340",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "DAD",
+          "to": "SGN"
+        },
+        "dep_time": "22:15",
+        "arr_time": "23:35",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1300000,
+            "seats_left": 8
+          },
+          {
+            "type": "BUSINESS",
+            "price": 3000000,
+            "seats_left": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "day_of_week": "Friday",
+    "day_vn": "Thứ 6",
+    "flights": [
+      {
+        "flight_id": "VJ142",
+        "airline": "Vietjet Air",
+        "route": {
+          "from": "SGN",
+          "to": "HAN"
+        },
+        "dep_time": "06:45",
+        "arr_time": "09:00",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1450000,
+            "seats_left": 6
+          },
+          {
+            "type": "SKYBOSS",
+            "price": 3500000,
+            "seats_left": 2
+          }
+        ]
+      },
+      {
+        "flight_id": "VN128",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "SGN",
+          "to": "DAD"
+        },
+        "dep_time": "15:10",
+        "arr_time": "16:30",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1650000,
+            "seats_left": 2
+          },
+          {
+            "type": "BUSINESS",
+            "price": 3500000,
+            "seats_left": 2
+          }
+        ]
+      },
+      {
+        "flight_id": "QH180",
+        "airline": "Bamboo Airways",
+        "route": {
+          "from": "HAN",
+          "to": "SGN"
+        },
+        "dep_time": "18:20",
+        "arr_time": "20:35",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1700000,
+            "seats_left": 0
+          },
+          {
+            "type": "BUSINESS",
+            "price": 4100000,
+            "seats_left": 3
+          }
+        ]
+      },
+      {
+        "flight_id": "VN292",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "SGN",
+          "to": "HAN"
+        },
+        "dep_time": "21:30",
+        "arr_time": "23:45",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 2100000,
+            "seats_left": 5
+          },
+          {
+            "type": "BUSINESS",
+            "price": 4900000,
+            "seats_left": 4
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "day_of_week": "Saturday",
+    "day_vn": "Thứ 7",
+    "flights": [
+      {
+        "flight_id": "VN106",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "SGN",
+          "to": "HAN"
+        },
+        "dep_time": "07:00",
+        "arr_time": "09:15",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 2250000,
+            "seats_left": 3
+          },
+          {
+            "type": "BUSINESS",
+            "price": 5200000,
+            "seats_left": 2
+          }
+        ]
+      },
+      {
+        "flight_id": "QH310",
+        "airline": "Bamboo Airways",
+        "route": {
+          "from": "SGN",
+          "to": "DAD"
+        },
+        "dep_time": "09:30",
+        "arr_time": "10:50",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1500000,
+            "seats_left": 7
+          },
+          {
+            "type": "BUSINESS",
+            "price": 3200000,
+            "seats_left": 4
+          }
+        ]
+      },
+      {
+        "flight_id": "VJ644",
+        "airline": "Vietjet Air",
+        "route": {
+          "from": "DAD",
+          "to": "SGN"
+        },
+        "dep_time": "14:40",
+        "arr_time": "16:00",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1250000,
+            "seats_left": 12
+          }
+        ]
+      },
+      {
+        "flight_id": "VN262",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "HAN",
+          "to": "SGN"
+        },
+        "dep_time": "19:45",
+        "arr_time": "22:00",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 2300000,
+            "seats_left": 1
+          },
+          {
+            "type": "BUSINESS",
+            "price": 5400000,
+            "seats_left": 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "day_of_week": "Sunday",
+    "day_vn": "Chủ Nhật",
+    "flights": [
+      {
+        "flight_id": "VJ166",
+        "airline": "Vietjet Air",
+        "route": {
+          "from": "SGN",
+          "to": "HAN"
+        },
+        "dep_time": "08:15",
+        "arr_time": "10:30",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1600000,
+            "seats_left": 4
+          },
+          {
+            "type": "SKYBOSS",
+            "price": 3700000,
+            "seats_left": 1
+          }
+        ]
+      },
+      {
+        "flight_id": "VN328",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "DAD",
+          "to": "HAN"
+        },
+        "dep_time": "11:20",
+        "arr_time": "12:40",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 1400000,
+            "seats_left": 8
+          },
+          {
+            "type": "BUSINESS",
+            "price": 3100000,
+            "seats_left": 3
+          }
+        ]
+      },
+      {
+        "flight_id": "QH190",
+        "airline": "Bamboo Airways",
+        "route": {
+          "from": "HAN",
+          "to": "SGN"
+        },
+        "dep_time": "17:00",
+        "arr_time": "19:15",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 2100000,
+            "seats_left": 2
+          },
+          {
+            "type": "BUSINESS",
+            "price": 4800000,
+            "seats_left": 1
+          }
+        ]
+      },
+      {
+        "flight_id": "VN274",
+        "airline": "Vietnam Airlines",
+        "route": {
+          "from": "HAN",
+          "to": "SGN"
+        },
+        "dep_time": "20:30",
+        "arr_time": "22:45",
+        "classes": [
+          {
+            "type": "ECONOMY",
+            "price": 2500000,
+            "seats_left": 0
+          },
+          {
+            "type": "BUSINESS",
+            "price": 5600000,
+            "seats_left": 2
+          }
+        ]
+      }
+    ]
+  }
+]
