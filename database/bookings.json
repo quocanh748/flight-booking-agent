@@ -1,6 +1,6 @@
 [
   {
-    "pnr": "PNR947213",
+    "pnr": "PNR195617",
     "flight_id": "VJ120",
     "airline": "Vietjet Air",
     "route": {
@@ -11,9 +11,60 @@
     "arr_time": "09:30",
     "day": "Thứ 3",
     "passenger_name": "Nguyễn Văn A",
-    "seat_class": "SKYBOSS",
-    "price_paid": 2900000,
-    "remaining_balance": 7100000,
-    "booked_at": "2026-09-24 14:39:11"
+    "seat_class": "ECONOMY",
+    "price_paid": 1050000,
+    "remaining_balance": 1900000,
+    "booked_at": "2026-09-27 12:27:41"
+  },
+  {
+    "pnr": "PNR306128",
+    "flight_id": "VJ120",
+    "airline": "Vietjet Air",
+    "route": {
+      "from": "SGN",
+      "to": "HAN"
+    },
+    "dep_time": "07:15",
+    "arr_time": "09:30",
+    "day": "Thứ 3",
+    "passenger_name": "Nguyễn Văn B",
+    "seat_class": "ECONOMY",
+    "price_paid": 1050000,
+    "remaining_balance": 1900000,
+    "booked_at": "2026-09-27 12:27:41"
+  },
+  {
+    "pnr": "PNR673833",
+    "flight_id": "VJ120",
+    "airline": "Vietjet Air",
+    "route": {
+      "from": "SGN",
+      "to": "HAN"
+    },
+    "dep_time": "07:15",
+    "arr_time": "09:30",
+    "day": "Thứ 3",
+    "passenger_name": "Nguyễn Văn A",
+    "seat_class": "ECONOMY",
+    "price_paid": 1050000,
+    "remaining_balance": 2800000,
+    "booked_at": "2026-09-27 12:36:08"
+  },
+  {
+    "pnr": "PNR101432",
+    "flight_id": "VJ120",
+    "airline": "Vietjet Air",
+    "route": {
+      "from": "SGN",
+      "to": "HAN"
+    },
+    "dep_time": "07:15",
+    "arr_time": "09:30",
+    "day": "Thứ 3",
+    "passenger_name": "Nguyễn Văn B",
+    "seat_class": "ECONOMY",
+    "price_paid": 1050000,
+    "remaining_balance": 2800000,
+    "booked_at": "2026-09-27 12:36:08"
   }
 ]

@@ -110,7 +110,7 @@
           {
             "type": "ECONOMY",
             "price": 1050000,
-            "seats_left": 20
+            "seats_left": 15
           },
           {
             "type": "SKYBOSS",
