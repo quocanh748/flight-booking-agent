@@ -84,7 +84,7 @@ def main():
                 print(f"Số dư ví còn lại: {balance_now:,} VND".replace(",", "."))
 
         except GraphRecursionError:
-            print("\n[CẢNH BÁO HỆ THỐNG]: Đã vượt quá giới hạn bước suy luận (Recursion Limit).")
+            print("\n[CẢNH BÁO HỆ THỐNG]: Đã vượt quá giới hạn bước suy luận.")
         except KeyboardInterrupt:
             print("\n\nĐã dừng chương trình. Tạm biệt!")
             break

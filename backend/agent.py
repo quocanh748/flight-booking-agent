@@ -31,7 +31,7 @@ Tuyệt đối không dừng lại giữa chừng khi các bước của khách 
 """
 
 class LoopDetector:
-    def __init__(self, window=6, repeat_k=2):
+    def __init__(self, window=5, repeat_k=3):
         self.recent = deque(maxlen=window)
         self.k = repeat_k
 
@@ -47,6 +47,7 @@ class AgentState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
     iteration_count: int
     user_goal: str
+    feedback_count: int
     booking_success: bool
 
 
@@ -64,7 +65,7 @@ class TicketAgent:
         self.tools = [check_balance, add_balance, book_flight, smart_flight_search]
         self.tool_map = {t.name: t for t in self.tools}
         self.max_iterations = max_iterations
-        self.loop_detector = LoopDetector(window=10, repeat_k=5)
+        self.loop_detector = LoopDetector(window=5, repeat_k=3)
 
         self.model = ChatOllama(
             model=model_name,
@@ -105,7 +106,7 @@ class TicketAgent:
                     t_id = tc["id"]
 
                     if self.loop_detector.check(t_name, t_args):
-                        obs = {"status": "error", "message": f"[CẢNH BÁO LẶP]: Tool {t_name} đang bị gọi lặp vô ích. Hãy đổi hướng suy luận!"}
+                        obs = {"status": "error", "message": f"[CẢNH BÁO LẶP]: Tool {t_name} đang bị gọi lặp. Hãy đổi hướng suy luận!"}
                     else:
                         tool_fn = self.tool_map.get(t_name)
                         obs = tool_fn.invoke(t_args) if tool_fn else {"status": "error", "message": "Tool không tồn tại"}
@@ -119,58 +120,56 @@ class TicketAgent:
 
         def feedback_node(state: AgentState):
             user_goal = state.get("user_goal", "")
+            current_feedback = state.get("feedback_count", 0) + 1
             prompt_reminder = (
                 f"[HỆ THỐNG HARNESS NHẮC NHỞ]: Bạn chưa hoàn tất yêu cầu của khách: '{user_goal}'. "
                 "Bạn đã thực hiện các bước trước đó, bây giờ hãy tiếp tục tìm chuyến bay và gọi book_flight để đặt vé và xuất mã PNR!"
             )
-            return {"messages": [HumanMessage(content=prompt_reminder)]}
+            return {
+                "messages": [HumanMessage(content=prompt_reminder)],
+                "feedback_count": current_feedback
+            }
 
         def termination_router(state: AgentState):
             last_message = state["messages"][-1]
             iterations = state.get("iteration_count", 0)
-            #Hết ngân sách
             if iterations >= self.max_iterations:
                 return END
             
             if getattr(last_message, "tool_calls", None):
                 return "tools"
             content = last_message.content.lower() if isinstance(last_message, AIMessage) else ""
-            # CẦN THÔNG TIN TỪ CON NGƯỜI
             needs_human_input = any(k in content for k in [
                 "họ tên", "tên hành khách", "vui lòng cung cấp", "xác nhận", "quý khách có muốn", "bạn có muốn"
             ])
             if needs_human_input:
                 return END
-            # ĐIỀU KIỆN TIÊU CHÍ HOÀN THÀNH
             user_goal = state.get("user_goal", "").lower()
             wants_booking = any(k in user_goal for k in ["đặt luôn", "chốt vé", "đặt vé", "mua vé"])
             
-            # Chỉ ép lặp nếu khách đã cung cấp tên mà model vẫn quên đặt vé
+            
             feedback_count = state.get("feedback_count", 0)
             if wants_booking and not state.get("booking_success", False) and feedback_count < 2:
                 return "feedback"
-            # Đã có câu trả lời hoàn chỉnh
             return END
 
-        # Thêm Nodes vào Graph
         workflow.add_node("agent", agent_node)
         workflow.add_node("tools", tool_node)
         workflow.add_node("feedback", feedback_node)
 
-        # Định tuyến Edges
         workflow.add_edge(START, "agent")
         workflow.add_conditional_edges("agent", termination_router, {
             "tools": "tools",
             "feedback": "feedback",
             END: END
         })
-        workflow.add_edge("tools", "agent")       # Thực thi tool xong LUÔN quay về agent
-        workflow.add_edge("feedback", "agent")    # Nhắc nhở xong quay về agent suy luận tiếp
+        workflow.add_edge("tools", "agent")       
+        workflow.add_edge("feedback", "agent")  
 
         return workflow.compile(checkpointer=self.memory)
 
     def stream(self, input_data: dict, config: dict | None = None, stream_mode: str = "updates"):
-        # Lưu yêu cầu gốc vào user_goal của State (Slide 62: giữ yêu cầu ở chỗ cố định)
+        
         messages = input_data.get("messages", [])
         user_goal = messages[-1].content if messages else ""
         payload = {

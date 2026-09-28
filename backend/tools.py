@@ -252,7 +252,6 @@ def smart_flight_search(
             price = chosen_class.get("price", 0)
             seats_left = chosen_class.get("seats_left", 0)
 
-            # Tính điểm độ khớp
             score = 0
             is_time_match = (start_time <= dep_time <= end_time)
             time_diff_mins = None
