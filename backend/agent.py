@@ -23,10 +23,11 @@ from tools import (
 )
 
 SYSTEM_PROMPT = """Bạn là trợ lý ảo AI chuyên nghiệp hỗ trợ tra cứu lịch và đặt vé máy bay theo chu trình ReAct.
-Khi người dùng đã xác nhận đặt vé ('đặt luôn', 'chốt vé', 'xác nhận') và cung cấp họ tên, bạn phải thực hiện trọn vẹn:
-1. Tra cứu chuyến bay phù hợp (smart_flight_search).
-2. Kiểm tra ví và nạp tiền nếu cần.
-3. Bắt buộc gọi book_flight để hoàn tất xuất vé PNR.
+Nguyên tắc phản hồi:
+- Trả lời ngắn gọn, súc tích, đi thẳng vào kết quả so sánh chuyến bay tốt nhất hoặc rẻ nhất theo yêu cầu của khách, không liệt kê lan man gây dài dòng.
+- Khi người dùng muốn đặt vé (các từ như 'đặt luôn', 'chốt vé', 'đặt vé', 'mua vé', 'lấy vé', 'thì lấy', 'chọn', 'mua'):
+  + Nếu CHƯA CÓ họ tên hành khách: Hãy đưa ra chuyến bay tối ưu nhất kèm tổng chi phí và hỏi xin họ tên hành khách để tiến hành xuất vé.
+  + Nếu ĐÃ CÓ họ tên hành khách: Thực hiện trọn vẹn: tra cứu chuyến bay -> kiểm tra ví/nạp tiền nếu cần -> BẮT BUỘC gọi book_flight để xuất mã PNR.
 Tuyệt đối không dừng lại giữa chừng khi các bước của khách hàng chưa được hoàn tất!
 """
 
@@ -57,7 +58,7 @@ class TicketAgent:
         model_name: str = "qwen2.5:3b",
         temperature: float = 0.1,
         base_url: str | None = None,
-        max_iterations: int = 20,
+        max_iterations: int = 25,
     ):
         load_dotenv()
         base_url = base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -71,7 +72,7 @@ class TicketAgent:
             model=model_name,
             temperature=temperature,
             base_url=base_url,
-            num_predict=1024,
+            num_predict=3072,
             num_ctx=8192
         ).bind_tools(self.tools)
 
@@ -123,7 +124,8 @@ class TicketAgent:
             current_feedback = state.get("feedback_count", 0) + 1
             prompt_reminder = (
                 f"[HỆ THỐNG HARNESS NHẮC NHỞ]: Bạn chưa hoàn tất yêu cầu của khách: '{user_goal}'. "
-                "Bạn đã thực hiện các bước trước đó, bây giờ hãy tiếp tục tìm chuyến bay và gọi book_flight để đặt vé và xuất mã PNR!"
+                "Nếu đã có họ tên hành khách, hãy gọi book_flight ngay để xuất mã PNR! "
+                "Nếu còn thiếu họ tên hành khách, hãy hỏi khách cung cấp họ tên ngay lập tức để tiến hành đặt vé."
             )
             return {
                 "messages": [HumanMessage(content=prompt_reminder)],
@@ -140,13 +142,14 @@ class TicketAgent:
                 return "tools"
             content = last_message.content.lower() if isinstance(last_message, AIMessage) else ""
             needs_human_input = any(k in content for k in [
-                "họ tên", "tên hành khách", "vui lòng cung cấp", "xác nhận", "quý khách có muốn", "bạn có muốn"
+                "họ tên", "tên hành khách", "vui lòng cung cấp", "xác nhận", "quý khách có muốn", "bạn có muốn", "xin họ tên", "cho tôi biết tên"
             ])
             if needs_human_input:
                 return END
             user_goal = state.get("user_goal", "").lower()
-            wants_booking = any(k in user_goal for k in ["đặt luôn", "chốt vé", "đặt vé", "mua vé"])
-            
+            wants_booking = any(k in user_goal for k in [
+                "đặt luôn", "chốt vé", "đặt vé", "mua vé", "thì lấy", "lấy", "chọn", "mua"
+            ])
             
             feedback_count = state.get("feedback_count", 0)
             if wants_booking and not state.get("booking_success", False) and feedback_count < 2:

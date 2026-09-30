@@ -46,7 +46,7 @@ def main():
 
             config = {
                 "configurable": {"thread_id": session_id},
-                "recursion_limit": 10,
+                "recursion_limit": 25,
             }
 
             print("\n[TIẾN TRÌNH ReAct (REASONING & ACTING)]:")
