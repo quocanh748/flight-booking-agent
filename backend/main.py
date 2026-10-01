@@ -49,7 +49,6 @@ def main():
                 "recursion_limit": 25,
             }
 
-            print("\n[TIẾN TRÌNH ReAct (REASONING & ACTING)]:")
             final_response = ""
 
             for update in agent.stream(
@@ -58,6 +57,8 @@ def main():
                 stream_mode="updates",
             ):
                 for node_name, node_data in update.items():
+                    if not node_data:
+                        continue
                     messages = node_data.get("messages", [])
                     for msg in messages:
                         if isinstance(msg, AIMessage):

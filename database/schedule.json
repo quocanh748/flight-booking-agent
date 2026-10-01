@@ -3549,7 +3549,7 @@
           {
             "type": "BUSINESS",
             "price": 4750000,
-            "seats_left": 4
+            "seats_left": 2
           }
         ]
       },
@@ -4254,7 +4254,7 @@
           {
             "type": "BUSINESS",
             "price": 4550000,
-            "seats_left": 4
+            "seats_left": 0
           }
         ]
       },
