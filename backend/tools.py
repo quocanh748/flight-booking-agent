@@ -1,8 +1,6 @@
 from langchain_core.tools import tool
-import os
 import json
 import random
-import re
 from datetime import datetime
 from pathlib import Path
 from pydantic import BaseModel, Field
@@ -107,12 +105,6 @@ AIRPORT_MAPPING = {
     "hà nội": "HAN", "ha noi": "HAN", "hn": "HAN", "han": "HAN", "nội bài": "HAN", "noi bai": "HAN",
     "đà nẵng": "DAD", "da nang": "DAD", "đn": "DAD", "dn": "DAD", "dad": "DAD",
     "hồ chí minh": "SGN", "tp hcm": "SGN", "tphcm": "SGN", "sài gòn": "SGN", "sai gon": "SGN", "sgn": "SGN", "tân sơn nhất": "SGN", "tan son nhat": "SGN"
-}
-
-AIRPORT_NAMES = {
-    "HAN": "Hà Nội (HAN)",
-    "DAD": "Đà Nẵng (DAD)",
-    "SGN": "TP. Hồ Chí Minh (SGN)"
 }
 
 def find_schedule_entry(data, query: str | None):

@@ -14,7 +14,6 @@ from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
-from pydantic import BaseModel, Field
 
 from tools import (
     check_balance,
@@ -98,6 +97,20 @@ QUY TẮC BẮT BUỘC:
 4. Khi đã hoàn thành bước {current_idx + 1}, hãy tóm tắt ngắn gọn kết quả để chuyển giao cho bước kế tiếp."""
 
 
+HUMAN_INPUT_KEYWORDS = [
+    "họ tên", "tên hành khách", "vui lòng cung cấp", "quý khách có muốn",
+    "bạn có muốn", "xin họ tên", "cho tôi biết tên", "ngày bay",
+    "lịch bay cho ngày nào", "thêm thông tin"
+]
+
+def check_needs_human_input(message: BaseMessage | None) -> bool:
+    """Kiểm tra phản hồi của agent có đang dừng lại chờ người dùng nhập thêm thông tin hay không."""
+    if not isinstance(message, AIMessage) or not message.content:
+        return False
+    content_lower = str(message.content).lower()
+    return any(k in content_lower for k in HUMAN_INPUT_KEYWORDS)
+
+
 class TicketAgent:
     def __init__(
         self,
@@ -173,7 +186,6 @@ class TicketAgent:
                 response = self.planner_model.invoke(planner_prompt_messages)
                 content = response.content.strip()
                 
-                # Trích xuất JSON từ phản hồi
                 json_match = re.search(r'\{.*\}', content, re.DOTALL)
                 if json_match:
                     try:
@@ -208,10 +220,8 @@ class TicketAgent:
             messages = state["messages"]
             prompt = build_agent_system_prompt(state)
             
-            if messages and isinstance(messages[0], SystemMessage):
-                call_messages = [SystemMessage(content=prompt)] + list(messages[1:])
-            else:
-                call_messages = [SystemMessage(content=prompt)] + list(messages)
+            conversation_messages = [m for m in messages if not isinstance(m, SystemMessage)]
+            call_messages = [SystemMessage(content=prompt)] + conversation_messages
 
             response = self.model.invoke(call_messages)
             current_count = state.get("iteration_count", 0) + 1
@@ -250,10 +260,7 @@ class TicketAgent:
             last_message = state["messages"][-1]
             last_content = last_message.content if isinstance(last_message, AIMessage) else ""
 
-            content_lower = last_content.lower()
-            needs_human_input = any(k in content_lower for k in [
-                "họ tên", "tên hành khách", "vui lòng cung cấp", "quý khách có muốn", "bạn có muốn", "xin họ tên", "cho tôi biết tên", "ngày bay", "lịch bay cho ngày nào", "thêm thông tin"
-            ])
+            needs_human_input = check_needs_human_input(last_message)
 
             completed_steps = list(state.get("completed_steps", []))
             current_step_desc = plan[current_idx] if current_idx < len(plan) else "Bước cuối"
@@ -289,11 +296,7 @@ class TicketAgent:
             if iterations >= self.max_iterations:
                 return END
 
-            content = last_message.content.lower() if isinstance(last_message, AIMessage) else ""
-            needs_human_input = any(k in content for k in [
-                "họ tên", "tên hành khách", "vui lòng cung cấp", "quý khách có muốn", "bạn có muốn", "xin họ tên", "cho tôi biết tên", "ngày bay", "lịch bay cho ngày nào", "thêm thông tin"
-            ])
-            if needs_human_input:
+            if check_needs_human_input(last_message):
                 return END
 
             if state.get("booking_success", False):

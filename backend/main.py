@@ -21,7 +21,7 @@ def main():
 
     agent = TicketAgent(
         model_name=model_name,
-        temperature=0.2,
+        temperature=0.1,
         base_url=base_url,
     )
 
@@ -78,7 +78,7 @@ def main():
 
             print(f"\nTrợ lý:\n{final_response}")
 
-            pnr_match = re.search(r"\bPNR\d{6}\b", final_response)
+            pnr_match = re.search(r"\bPNR\d{6}\b", final_response or "")
             if pnr_match:
                 balance_now = get_wallet_balance()
                 print(f"\n[THÔNG BÁO HỆ THỐNG]: Đã hoàn tất xuất vé! Mã PNR: {pnr_match.group(0)}")
