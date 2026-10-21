@@ -2,6 +2,7 @@ import os
 import sys
 import re
 import json
+from pathlib import Path
 from typing import Annotated, TypedDict
 from collections import deque
 from dotenv import load_dotenv
@@ -22,26 +23,14 @@ from tools import (
     smart_flight_search,
 )
 
-PLANNER_PROMPT = """Bạn là chuyên gia lập kế hoạch cho hệ thống vé máy bay thông minh.
-Hệ thống CÓ SẴN các công cụ:
-- smart_flight_search: Tra cứu danh sách chuyến bay theo ngày/tuyến/hạng vé.
-- check_balance: Kiểm tra số dư ví.
-- add_balance: Nạp tiền vào ví.
-- book_flight: Đặt vé máy bay (cần họ tên hành khách).
+PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 
-NHIỆM VỤ:
-Phân tích CHÍNH XÁC mục đích trong câu nói của khách hàng và xuất ra DUY NHẤT 1 JSON object dạng:
-{"steps": ["nội dung bước 1...", "nội dung bước 2..."]}
 
-QUY TẮC CỐT LÕI VỀ MỤC TIÊU (BẮT BUỘC TUÂN THỦ):
-1. KHÁCH CHỈ HỎI/XEM/TRA CỨU LỊCH BAY (ví dụ: 'cho xem lịch bay', 'hôm nay có chuyến nào', 'tìm chuyến...', 'check vé...'):
-   -> Kế hoạch CHỈ CÓ 1 BƯỚC DUY NHẤT: Tra cứu và hiển thị danh sách chuyến bay theo yêu cầu.
-   -> TUYỆT ĐỐI KHÔNG thêm bước kiểm tra ví, nạp tiền hay đặt vé!
-2. KHÁCH CHỈ HỎI SỐ DƯ HOẶC NẠP TIỀN:
-   -> Kế hoạch CHỈ CÓ bước kiểm tra ví hoặc nạp tiền.
-3. CHỈ KHI KHÁCH YÊU CẦU ĐẶT / MUA VÉ (ví dụ: 'đặt 2 vé', 'mua vé', 'chuyến nào rẻ thì đặt', 'chốt vé', 'lấy vé'):
-   -> Mới lập các bước đầy đủ gồm: Tra cứu chuyến ➔ Xác nhận tên và đặt vé ➔ Nếu không đủ số dư, hỏi khách để nạp tiền.
-4. Xuất DUY NHẤT 1 JSON hợp lệ, KHÔNG viết suy nghĩ, giải thích hay bất kỳ chữ nào ngoài JSON."""
+def load_prompt(filename: str) -> str:
+    """Đọc nội dung file prompt Markdown từ thư mục prompts/."""
+    prompt_file = PROMPTS_DIR / filename
+    return prompt_file.read_text(encoding="utf-8")
+
 
 class LoopDetector:
     def __init__(self, window=5, repeat_k=3):
@@ -79,22 +68,13 @@ def build_agent_system_prompt(state: AgentState) -> str:
 
     plan_text = "\n".join([f"{i+1}. {s}" for i, s in enumerate(plan)]) if plan else "Chưa có kế hoạch cụ thể."
 
-    return f"""Bạn là trợ lý AI chuyên trách THỰC THI từng bước trong quy trình đặt vé máy bay theo mô hình ReAct.
-
-KẾ HOẠCH TỔNG THỂ:
-{plan_text}
-
-CÁC BƯỚC ĐÃ HOÀN THÀNH:
-{completed_text}
-
-🎯 NHIỆM VỤ DUY NHẤT CỦA BẠN BÂY GIỜ LÀ:
-👉 BƯỚC {current_idx + 1}: "{current_step}"
-
-QUY TẮC BẮT BUỘC:
-1. Chỉ tập trung thực hiện BƯỚC {current_idx + 1} bằng cách suy nghĩ và gọi các công cụ (smart_flight_search, check_balance, add_balance, book_flight) phù hợp.
-2. TUYỆT ĐỐI KHÔNG làm vượt sang các bước tiếp theo khi bước hiện tại chưa hoàn tất.
-3. Nếu bước hiện tại yêu cầu xuất vé nhưng chưa có họ tên hành khách, hãy hỏi khách cung cấp họ tên ngay.
-4. Khi đã hoàn thành bước {current_idx + 1}, hãy tóm tắt ngắn gọn kết quả để chuyển giao cho bước kế tiếp."""
+    template = load_prompt("agent.md")
+    return template.format(
+        plan_text=plan_text,
+        completed_text=completed_text,
+        step_number=current_idx + 1,
+        current_step=current_step
+    )
 
 
 HUMAN_INPUT_KEYWORDS = [
@@ -177,7 +157,7 @@ class TicketAgent:
                 default_steps = ["Tra cứu và hiển thị danh sách chuyến bay theo yêu cầu"]
 
             planner_prompt_messages = [
-                SystemMessage(content=PLANNER_PROMPT),
+                SystemMessage(content=load_prompt("planner.md")),
                 HumanMessage(content=f"Yêu cầu của khách: '{user_goal}'. Hãy lập kế hoạch giải quyết.")
             ]
             
